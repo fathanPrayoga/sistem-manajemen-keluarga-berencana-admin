@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/complaint_list_viewmodel.dart';
 import 'package:intl/intl.dart';
-import '../../../models/complaint_model.dart';
 
+import '../viewmodels/complaint_list_viewmodel.dart';
+import '../../../models/complaint_model.dart';
 import 'complaint_detail_dialog.dart';
 
 class ComplaintListPage extends StatelessWidget {
@@ -29,7 +29,6 @@ class _ComplaintListView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Daftar Pengaduan'),
         actions: [
-          // Dropdown Filter
           PopupMenuButton<ComplaintStatus?>(
             icon: const Icon(Icons.filter_list),
             tooltip: 'Filter Status',
@@ -39,7 +38,7 @@ class _ComplaintListView extends StatelessWidget {
               ...ComplaintStatus.values.map(
                 (status) => PopupMenuItem(
                   value: status,
-                  child: Text(status.toString().split('.').last.toUpperCase()),
+                  child: Text(_statusLabel(status)),
                 ),
               ),
             ],
@@ -53,41 +52,45 @@ class _ComplaintListView extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          var complaints = snapshot.data ?? [];
-
-          // Client-side filtering
-          if (viewModel.filterStatus != null) {
-            complaints = complaints
-                .where((c) => c.status == viewModel.filterStatus)
-                .toList();
-          }
+          final complaints = snapshot.data ?? [];
 
           if (complaints.isEmpty) {
             return const Center(child: Text('Belum ada pengaduan'));
           }
 
-          // Gunakan ListView card agar responsif vs DataTable yang bisa overflow
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: complaints.length,
             itemBuilder: (context, index) {
               final item = complaints[index];
+
               return Card(
+                margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
-                  leading: const Icon(
-                    Icons.report_problem,
-                    color: Colors.orange,
-                  ),
+                  leading: item.imageUrl.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            item.imageUrl,
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.image_not_supported),
+                          ),
+                        )
+                      : const Icon(Icons.report_problem, color: Colors.orange),
                   title: Text(
-                    item.kategori,
+                    item.kategori.toUpperCase(),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${item.fullname} - ${DateFormat('dd MMM yyyy').format(item.timestamp)}',
+                        '${item.fullname} • ${DateFormat('dd MMM yyyy').format(item.timestamp)}',
                       ),
+                      const SizedBox(height: 4),
                       Text(
                         item.description,
                         maxLines: 2,
@@ -106,7 +109,7 @@ class _ComplaintListView extends StatelessWidget {
                     );
 
                     if (newStatus != null && context.mounted) {
-                      viewModel.updateStatus(item.id, newStatus);
+                      await viewModel.updateStatus(item, newStatus);
                     }
                   },
                 ),
@@ -116,6 +119,19 @@ class _ComplaintListView extends StatelessWidget {
         },
       ),
     );
+  }
+
+  static String _statusLabel(ComplaintStatus status) {
+    switch (status) {
+      case ComplaintStatus.pending:
+        return 'MENUNGGU';
+      case ComplaintStatus.processed:
+        return 'DIPROSES';
+      case ComplaintStatus.done:
+        return 'SELESAI';
+      case ComplaintStatus.rejected:
+        return 'DITOLAK';
+    }
   }
 
   Color _getStatusColor(ComplaintStatus status) {

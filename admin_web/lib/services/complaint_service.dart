@@ -1,42 +1,56 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:async/async.dart';
 import '../models/complaint_model.dart';
 
 class ComplaintService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final List<String> _collections = [
+    'pengaduan_bansos',
+    'pengaduan_anak',
+    'pengaduan_lansia',
+    'pengaduan_bencana',
+    'pengaduan_mental',
+  ];
 
-  // Ambil semua pengaduan
   Stream<List<ComplaintModel>> getComplaints() {
-    return _firestore
-        .collection('pengaduan')
-        .orderBy('timestamp', descending: true)
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => ComplaintModel.fromFirestore(doc))
-              .toList();
-        });
+    final streams = _collections.map((collection) {
+      return _firestore
+          .collection(collection)
+          .orderBy('created_at', descending: true)
+          .snapshots()
+          .map((snapshot) {
+            return snapshot.docs
+                .map((doc) => ComplaintModel.fromFirestore(doc))
+                .toList();
+          });
+    });
+
+    return StreamZip(streams).map((lists) {
+      return lists.expand((e) => e).toList()
+        ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    });
   }
 
-  // Update Status Pengaduan
-  Future<void> updateStatus(String id, ComplaintStatus status) async {
-    String statusStr;
+  Future<void> updateStatus(
+    String id,
+    String kategori,
+    ComplaintStatus status,
+  ) async {
+    await _firestore.collection('pengaduan_$kategori').doc(id).update({
+      'status': _statusToString(status),
+    });
+  }
+
+  String _statusToString(ComplaintStatus status) {
     switch (status) {
       case ComplaintStatus.pending:
-        statusStr = 'pending';
-        break;
+        return 'menunggu';
       case ComplaintStatus.processed:
-        statusStr = 'processed';
-        break;
+        return 'diproses';
       case ComplaintStatus.done:
-        statusStr = 'done';
-        break;
+        return 'selesai';
       case ComplaintStatus.rejected:
-        statusStr = 'rejected';
-        break;
+        return 'ditolak';
     }
-
-    await _firestore.collection('pengaduan').doc(id).update({
-      'status': statusStr,
-    });
   }
 }
