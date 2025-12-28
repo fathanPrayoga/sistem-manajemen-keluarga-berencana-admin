@@ -1,0 +1,38 @@
+﻿Resolving dependencies...
+flutter : The 
+current Dart SDK 
+version is 3.9.2.
+At line:1 char:1
++ flutter pub get 
+2>&1 | Out-File 
+-FilePath log.txt 
+-Encoding utf8
++ 
+~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (The cur   
+ rent Dart SDK ve    
+rsion is 3.9.2.:    
+String) [], Remo    
+teException
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+
+Because admin_web 
+requires SDK version 
+^3.10.4, version 
+solving failed.
+
+
+You can try the 
+following suggestion 
+to make the pubspec 
+resolve:
+* Try using the 
+Flutter SDK version: 
+3.38.5. 
+Failed to update 
+packages.

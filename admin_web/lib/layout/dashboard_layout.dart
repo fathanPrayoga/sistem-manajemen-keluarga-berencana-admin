@@ -17,6 +17,7 @@ class DashboardLayout extends StatelessWidget {
       if (location.startsWith('/chat')) return 1;
       if (location.startsWith('/complaints')) return 2;
       if (location.startsWith('/info-kb')) return 3;
+      if (location.startsWith('/news')) return 4;
       return 0;
     }
 
@@ -38,6 +39,9 @@ class DashboardLayout extends StatelessWidget {
                   break;
                 case 3:
                   context.go('/info-kb');
+                  break;
+                case 4:
+                  context.go('/news');
                   break;
               }
             },
@@ -62,6 +66,11 @@ class DashboardLayout extends StatelessWidget {
                 icon: Icon(Icons.article_outlined),
                 selectedIcon: Icon(Icons.article),
                 label: Text('Info KB'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.newspaper_outlined),
+                selectedIcon: Icon(Icons.newspaper),
+                label: Text('Berita'),
               ),
             ],
             trailing: Padding(
