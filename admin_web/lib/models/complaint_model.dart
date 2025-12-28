@@ -9,9 +9,9 @@ class ComplaintModel {
   final String nik;
   final String phone;
   final String address;
-  final String description; // Ditambahkan
+  final String description;
   final String imageUrl;
-  final ComplaintStatus status; // Diubah ke Enum
+  final ComplaintStatus status;
   final DateTime timestamp;
 
   ComplaintModel({
@@ -28,40 +28,50 @@ class ComplaintModel {
   });
 
   factory ComplaintModel.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>;
+
     return ComplaintModel(
       id: doc.id,
       kategori: data['kategori'] ?? '',
-      fullname: data['fullname'] ?? '',
+      fullname: data['nama'] ?? '',
       nik: data['nik'] ?? '',
-      phone: data['phone'] ?? '',
-      address: data['address'] ?? '',
-      description:
-          data['description'] ??
-          data['keluhan'] ??
-          '', // Handle key 'keluhan' dari mobile
-      imageUrl: data['imageUrl'] ?? '',
-      status: _parseStatus(data['status']), // Gunakan helper
-      timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      phone: data['no_hp'] ?? '',
+      address: data['alamat'] ?? '',
+      description: data['keluhan'] ?? '',
+      imageUrl: data['image_url'] ?? '',
+      status: _parseStatus(data['status']),
+      timestamp: (data['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
   static ComplaintStatus _parseStatus(String? status) {
     switch (status) {
-      case 'processed':
+      case 'diproses':
         return ComplaintStatus.processed;
-      case 'done':
+      case 'selesai':
         return ComplaintStatus.done;
-      case 'rejected':
+      case 'ditolak':
         return ComplaintStatus.rejected;
       default:
-        return ComplaintStatus.pending;
+        return ComplaintStatus.pending; // menunggu
+    }
+  }
+
+  String get statusFirestore {
+    switch (status) {
+      case ComplaintStatus.pending:
+        return 'menunggu';
+      case ComplaintStatus.processed:
+        return 'diproses';
+      case ComplaintStatus.done:
+        return 'selesai';
+      case ComplaintStatus.rejected:
+        return 'ditolak';
     }
   }
 
   String get statusText {
     switch (status) {
-      // Sekarang status adalah Enum, jadi valid
       case ComplaintStatus.pending:
         return 'Menunggu';
       case ComplaintStatus.processed:
