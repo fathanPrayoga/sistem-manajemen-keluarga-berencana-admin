@@ -38,7 +38,7 @@ class ComplaintModel {
       phone: data['no_hp'] ?? '',
       address: data['alamat'] ?? '',
       description: data['keluhan'] ?? '',
-      imageUrl: data['image_url'] ?? '',
+      imageUrl: data['image_url'] ?? data['imageUrl'] ?? data['url'] ?? '',
       status: _parseStatus(data['status']),
       timestamp: (data['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );

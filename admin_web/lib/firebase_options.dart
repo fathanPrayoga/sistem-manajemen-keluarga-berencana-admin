@@ -58,7 +58,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '165397405082',
     projectId: 'app-pengaduan-71ba1',
     authDomain: 'app-pengaduan-71ba1.firebaseapp.com',
-    storageBucket: 'app-pengaduan-71ba1.appspot.com',
+    storageBucket: 'app-pengaduan-71ba1.firebasestorage.app',
     measurementId: 'G-9XS41W84RT',
   );
 }
