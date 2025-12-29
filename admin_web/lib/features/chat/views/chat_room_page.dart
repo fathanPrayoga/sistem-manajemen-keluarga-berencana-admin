@@ -31,6 +31,16 @@ class _ChatRoomViewState extends State<_ChatRoomView> {
   final TextEditingController _textController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // Mark conversation as read for admin when opening the chat room
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final viewModel = context.read<ChatRoomViewModel>();
+      viewModel.markAsRead();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ChatRoomViewModel>();
 
@@ -57,9 +67,8 @@ class _ChatRoomViewState extends State<_ChatRoomView> {
                     final isMe = message.senderId == 'admin';
 
                     return Align(
-                      alignment: isMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
+                      alignment:
+                          isMe ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.all(12),

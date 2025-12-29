@@ -68,9 +68,20 @@ class _ChatInboxView extends StatelessWidget {
             itemBuilder: (context, index) {
               final user = users[index];
               final lastTime = user['lastMessageTime'] as DateTime?;
-              final timeString = lastTime != null
-                  ? DateFormat('dd MMM HH:mm').format(lastTime)
-                  : '';
+              String formatWithOffset(DateTime date) {
+                final local = date.toLocal();
+                final offset = local.timeZoneOffset;
+                final sign = offset.isNegative ? '-' : '+';
+                final hours = offset.inHours.abs().toString().padLeft(2, '0');
+                final minutes =
+                    (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+                final tz = 'UTC$sign$hours:$minutes';
+                return DateFormat("dd MMMM yyyy 'at' HH:mm:ss").format(local) +
+                    ' $tz';
+              }
+
+              final timeString =
+                  lastTime != null ? formatWithOffset(lastTime) : '';
 
               return ListTile(
                 leading: CircleAvatar(
