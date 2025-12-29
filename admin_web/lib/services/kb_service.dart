@@ -38,5 +38,33 @@ class KbService {
     await _firestore.collection('pendaftaran_kb').doc(id).update({
       'status': statusStr,
     });
+
+    // Create Notification on Status Update
+    final docSnapshot = await _firestore.collection('pendaftaran_kb').doc(id).get();
+    if (docSnapshot.exists) {
+      final data = docSnapshot.data() as Map<String, dynamic>;
+      final nik = data['nik'] as String?;
+
+      if (nik != null && nik.isNotEmpty) {
+        String bodyText = 'Pendaftaran KB anda diperbarui.';
+        if (status == KbStatus.confirmed) {
+          bodyText = 'Pendaftaran KB anda telah dikonfirmasi.';
+        } else if (status == KbStatus.done) {
+          bodyText = 'Pendaftaran KB anda telah selesai.';
+        } else if (status == KbStatus.rejected) {
+          bodyText = 'Pendaftaran KB anda telah ditolak.';
+        } else if (status == KbStatus.pending) {
+           bodyText = 'Pendaftaran KB anda sedang menunggu konfirmasi.';
+        }
+
+        await _firestore.collection('notifications').add({
+          'recipientNik': nik,
+          'title': 'Pendaftaran KB',
+          'body': bodyText,
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+    }
   }
 }
