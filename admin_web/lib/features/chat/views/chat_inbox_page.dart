@@ -93,31 +93,23 @@ class _ChatInboxView extends StatelessWidget {
                       timeString,
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
-                    if (user['unreadCount'] > 0)
+                    if (user['isReadByAdmin'] == false)
                       Container(
                         margin: const EdgeInsets.only(top: 4),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
                           color: Colors.red,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '${user['unreadCount']}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                          ),
+                          shape: BoxShape.circle,
                         ),
                       ),
                   ],
                 ),
                 onTap: () {
-                  // Navigasi ke Chat Room
+                  // Navigasi ke Chat Room dengan encoding path agar aman di URL
+                  final chatPath = Uri.encodeComponent(user['chatPath']);
                   context.go(
-                    '/chat/${user['uid']}',
+                    '/chat/$chatPath',
                     extra: user['displayName'],
                   );
                 },

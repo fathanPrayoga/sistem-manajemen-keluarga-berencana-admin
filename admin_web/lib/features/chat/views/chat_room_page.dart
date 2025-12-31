@@ -5,15 +5,20 @@ import '../viewmodels/chat_room_viewmodel.dart';
 import '../../../models/chat_model.dart';
 
 class ChatRoomPage extends StatelessWidget {
-  final String userId;
+  final String chatPath; // Ini adalah encoded path dari router
   final String userName;
 
-  const ChatRoomPage({super.key, required this.userId, required this.userName});
+  const ChatRoomPage(
+      {super.key, required this.chatPath, required this.userName});
 
   @override
   Widget build(BuildContext context) {
+    // Decode path jika perlu, tapi biasanya router sudah handle jika passed as param.
+    // Tapi karena kita manual encodeComponent sebelumnya, kita decodeComponent di sini.
+    final decodedPath = Uri.decodeComponent(chatPath);
+
     return ChangeNotifierProvider(
-      create: (_) => ChatRoomViewModel(userId),
+      create: (_) => ChatRoomViewModel(decodedPath),
       child: _ChatRoomView(userName: userName),
     );
   }
@@ -57,9 +62,8 @@ class _ChatRoomViewState extends State<_ChatRoomView> {
                     final isMe = message.senderId == 'admin';
 
                     return Align(
-                      alignment: isMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
+                      alignment:
+                          isMe ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.all(12),

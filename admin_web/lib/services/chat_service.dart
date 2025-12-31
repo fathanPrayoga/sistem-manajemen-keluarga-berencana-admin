@@ -5,71 +5,72 @@ class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // 1. Ambil daftar User yang pernah chat (Inbox List)
+  // Menggunakan collectionGroup karena chat tersebar di sub-collection category
   Stream<List<Map<String, dynamic>>> getChatUsers() {
-    // Asumsi: Kita punya collection 'users' yang punya field 'lastMessageTime'
-    // atau kita query collection 'chats' (tergantung struktur DB Mobile App-nya).
-    // Skenario umum: Collection 'chats' document ID-nya adalah UID User.
     return _firestore
-        .collection('konsultasi')
-        .orderBy('lastMessageTime', descending: true)
+        .collectionGroup('chats')
+        .orderBy('lastUpdated', descending: true)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            final data = doc.data();
-            return {
-              'uid': doc.id,
-              'displayName': data['userName'] ?? 'User Tanpa Nama',
-              'lastMessage': data['lastMessage'] ?? '',
-              'lastMessageTime': (data['lastMessageTime'] as Timestamp?)
-                  ?.toDate(),
-              'unreadCount':
-                  data['unreadCountAdmin'] ?? 0, // Penting buat badge
-            };
-          }).toList();
-        });
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'id': doc.id, // User ID
+          'chatPath':
+              doc.reference.path, // Full path doc: konsultasi/{cat}/chats/{uid}
+          'displayName': data['userName'] ?? 'User Tanpa Nama',
+          'lastMessage': data['lastMessage'] ?? '',
+          'lastMessageTime': (data['lastUpdated'] as Timestamp?)?.toDate(),
+          'isReadByAdmin': data['isReadByAdmin'] ?? true,
+          // Mobile app uses 'isReadByAdmin' boolean, not a counter
+        };
+      }).toList();
+    });
   }
 
   // 2. Ambil isi chat specific user (Chat Room)
-  Stream<List<ChatMessage>> getMessages(String userId) {
+  // Menerima full path dokumen chat (konsultasi/{cat}/chats/{uid})
+  Stream<List<ChatMessage>> getMessages(String chatPath) {
     return _firestore
-        .collection('konsultasi')
-        .doc(userId)
+        .doc(chatPath)
         .collection('messages')
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => ChatMessage.fromFirestore(doc))
-              .toList();
-        });
+      return snapshot.docs
+          .map((doc) => ChatMessage.fromFirestore(doc))
+          .toList();
+    });
   }
 
   // 3. Kirim Pesan (Admin -> User)
   Future<void> sendMessage(
-    String userId,
+    String chatPath,
     String text, {
     String? imageUrl,
   }) async {
     final messageData = {
-      'senderId': 'admin', // Hardcode atau ambil dari AuthUser
+      'senderId': 'admin',
       'text': text,
       'imageUrl': imageUrl,
       'timestamp': FieldValue.serverTimestamp(),
-      'isRead': false,
+      'isRead': false, // Untuk sisi User (jika user support read receipt)
     };
 
-    // Add to subcollection
-    await _firestore
-        .collection('konsultasi')
-        .doc(userId)
-        .collection('messages')
-        .add(messageData);
+    final chatDocRef = _firestore.doc(chatPath);
 
-    // Update summary di dokumen parent (untuk Inbox List)
-    await _firestore.collection('konsultasi').doc(userId).update({
+    // Add to subcollection messages
+    await chatDocRef.collection('messages').add(messageData);
+
+    // Update summary di dokumen parent
+    // Note: Mobile app expects 'lastUpdated' field
+    await chatDocRef.update({
       'lastMessage': text,
-      'lastMessageTime': FieldValue.serverTimestamp(),
-      'unreadCountUser': FieldValue.increment(1), // Nambah badge di sisi user
+      'lastUpdated': FieldValue.serverTimestamp(),
+      'isReadByAdmin': true, // Kita yang kirim, jadi sudah terbaca
+      'lastSenderId': 'admin',
+      // Jika butuh counter unread di sisi user, tambahkan di sini sesuai logic App
+      // 'unreadCountUser': FieldValue.increment(1),
     });
   }
 }
