@@ -68,9 +68,20 @@ class _ChatInboxView extends StatelessWidget {
             itemBuilder: (context, index) {
               final user = users[index];
               final lastTime = user['lastMessageTime'] as DateTime?;
-              final timeString = lastTime != null
-                  ? DateFormat('dd MMM HH:mm').format(lastTime)
-                  : '';
+              String formatWithOffset(DateTime date) {
+                final local = date.toLocal();
+                final offset = local.timeZoneOffset;
+                final sign = offset.isNegative ? '-' : '+';
+                final hours = offset.inHours.abs().toString().padLeft(2, '0');
+                final minutes =
+                    (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+                final tz = 'UTC$sign$hours:$minutes';
+                return DateFormat("dd MMMM yyyy 'at' HH:mm:ss").format(local) +
+                    ' $tz';
+              }
+
+              final timeString =
+                  lastTime != null ? formatWithOffset(lastTime) : '';
 
               return ListTile(
                 leading: CircleAvatar(
@@ -96,28 +107,27 @@ class _ChatInboxView extends StatelessWidget {
                     if (user['unreadCount'] > 0)
                       Container(
                         margin: const EdgeInsets.only(top: 4),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
                           color: Colors.red,
-                          borderRadius: BorderRadius.circular(10),
+                          shape: BoxShape.circle,
                         ),
                         child: Text(
-                          '${user['unreadCount']}',
+                          user['unreadCount'].toString(),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                   ],
                 ),
                 onTap: () {
-                  // Navigasi ke Chat Room
+                  // Navigasi ke Chat Room dengan encoding path agar aman di URL
+                  final chatPath = Uri.encodeComponent(user['chatPath']);
                   context.go(
-                    '/chat/${user['uid']}',
+                    '/chat/$chatPath',
                     extra: user['displayName'],
                   );
                 },

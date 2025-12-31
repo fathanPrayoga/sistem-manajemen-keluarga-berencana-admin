@@ -61,4 +61,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'app-pengaduan-71ba1.firebasestorage.app',
     measurementId: 'G-9XS41W84RT',
   );
+
 }

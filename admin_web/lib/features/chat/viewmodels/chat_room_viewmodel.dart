@@ -4,15 +4,24 @@ import '../../../services/chat_service.dart';
 
 class ChatRoomViewModel extends ChangeNotifier {
   final ChatService _chatService = ChatService();
-  final String userId; // Lawan bicara
+  final String chatPath; // Path ke dokumen chat
 
-  ChatRoomViewModel(this.userId);
+  ChatRoomViewModel(this.chatPath);
 
   bool _isSending = false;
   bool get isSending => _isSending;
 
   Stream<List<ChatMessage>> get messagesStream =>
-      _chatService.getMessages(userId);
+      _chatService.getMessages(chatPath);
+
+  /// Mark conversation as read by admin (reset unread counter)
+  Future<void> markAsRead() async {
+    try {
+      await _chatService.markAsReadForAdmin(chatPath);
+    } catch (e) {
+      debugPrint('Error marking as read in viewmodel: $e');
+    }
+  }
 
   Future<void> sendMessage(String text, {String? imageUrl}) async {
     if ((text.trim().isEmpty && imageUrl == null)) return;
@@ -21,7 +30,7 @@ class ChatRoomViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _chatService.sendMessage(userId, text, imageUrl: imageUrl);
+      await _chatService.sendMessage(chatPath, text, imageUrl: imageUrl);
     } catch (e) {
       debugPrint("Error sending message: $e");
     } finally {

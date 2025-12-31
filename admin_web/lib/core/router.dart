@@ -29,9 +29,9 @@ final router = GoRouter(
             GoRoute(
               path: ':id',
               builder: (context, state) {
-                final userId = state.pathParameters['id']!;
+                final chatPath = state.pathParameters['id']!;
                 final userName = state.extra as String? ?? 'User';
-                return ChatRoomPage(userId: userId, userName: userName);
+                return ChatRoomPage(chatPath: chatPath, userName: userName);
               },
             ),
           ],
@@ -48,7 +48,7 @@ final router = GoRouter(
           path: '/news',
           builder: (context, state) => const NewsListPage(),
           routes: [
-             GoRoute(
+            GoRoute(
               path: 'add',
               builder: (context, state) => const AddNewsPage(),
             ),
