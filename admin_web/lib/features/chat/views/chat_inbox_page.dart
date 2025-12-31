@@ -104,14 +104,21 @@ class _ChatInboxView extends StatelessWidget {
                       timeString,
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
-                    if (user['isReadByAdmin'] == false)
+                    if (user['unreadCount'] > 0)
                       Container(
                         margin: const EdgeInsets.only(top: 4),
-                        width: 10,
-                        height: 10,
+                        padding: const EdgeInsets.all(6),
                         decoration: const BoxDecoration(
                           color: Colors.red,
                           shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          user['unreadCount'].toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                   ],

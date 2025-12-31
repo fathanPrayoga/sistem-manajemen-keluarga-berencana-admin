@@ -17,7 +17,7 @@ class ChatRoomViewModel extends ChangeNotifier {
   /// Mark conversation as read by admin (reset unread counter)
   Future<void> markAsRead() async {
     try {
-      await _chatService.markAsReadForAdmin(userId);
+      await _chatService.markAsReadForAdmin(chatPath);
     } catch (e) {
       debugPrint('Error marking as read in viewmodel: $e');
     }
