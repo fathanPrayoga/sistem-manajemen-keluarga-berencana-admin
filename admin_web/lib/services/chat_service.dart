@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/chat_model.dart';
 
 class ChatService {
@@ -8,21 +9,18 @@ class ChatService {
   // Menggunakan collectionGroup karena chat tersebar di sub-collection category
   Stream<List<Map<String, dynamic>>> getChatUsers() {
     return _firestore
-        .collectionGroup('chats')
-        .orderBy('lastUpdated', descending: true)
+        .collection('konsultasi')
+        .orderBy('lastMessageTime', descending: true)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data();
         return {
-          'id': doc.id, // User ID
-          'chatPath':
-              doc.reference.path, // Full path doc: konsultasi/{cat}/chats/{uid}
+          'uid': doc.id,
           'displayName': data['userName'] ?? 'User Tanpa Nama',
           'lastMessage': data['lastMessage'] ?? '',
-          'lastMessageTime': (data['lastUpdated'] as Timestamp?)?.toDate(),
-          'isReadByAdmin': data['isReadByAdmin'] ?? true,
-          // Mobile app uses 'isReadByAdmin' boolean, not a counter
+          'lastMessageTime': (data['lastMessageTime'] as Timestamp?)?.toDate(),
+          'unreadCount': data['unreadCountAdmin'] ?? 0, // Penting buat badge
         };
       }).toList();
     });
@@ -45,7 +43,7 @@ class ChatService {
 
   // 3. Kirim Pesan (Admin -> User)
   Future<void> sendMessage(
-    String chatPath,
+    String userId,
     String text, {
     String? imageUrl,
   }) async {

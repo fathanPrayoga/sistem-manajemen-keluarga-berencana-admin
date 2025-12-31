@@ -14,6 +14,15 @@ class ChatRoomViewModel extends ChangeNotifier {
   Stream<List<ChatMessage>> get messagesStream =>
       _chatService.getMessages(chatPath);
 
+  /// Mark conversation as read by admin (reset unread counter)
+  Future<void> markAsRead() async {
+    try {
+      await _chatService.markAsReadForAdmin(userId);
+    } catch (e) {
+      debugPrint('Error marking as read in viewmodel: $e');
+    }
+  }
+
   Future<void> sendMessage(String text, {String? imageUrl}) async {
     if ((text.trim().isEmpty && imageUrl == null)) return;
 

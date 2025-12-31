@@ -36,6 +36,16 @@ class _ChatRoomViewState extends State<_ChatRoomView> {
   final TextEditingController _textController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // Mark conversation as read for admin when opening the chat room
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final viewModel = context.read<ChatRoomViewModel>();
+      viewModel.markAsRead();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ChatRoomViewModel>();
 
