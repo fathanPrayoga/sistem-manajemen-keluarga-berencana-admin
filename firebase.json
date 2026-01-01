@@ -9,5 +9,19 @@
             "firebase-debug.*.log",
             "*.local"
         ]
+    },
+    "hosting": {
+        "public": "admin_web/build/web",
+        "ignore": [
+            "firebase.json",
+            "**/.*",
+            "**/node_modules/**"
+        ],
+        "rewrites": [
+            {
+                "source": "**",
+                "destination": "/index.html"
+            }
+        ]
     }
 }
